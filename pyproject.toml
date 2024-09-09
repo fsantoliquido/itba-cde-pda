@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "itba-cde-pda"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+google-api-python-client-stubs = "^1.27.0"
+google-auth-oauthlib = "^1.2.1"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
