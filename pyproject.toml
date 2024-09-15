@@ -2,17 +2,13 @@
 name = "itba-cde-pda"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["fsantoliquido"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
-google-api-python-client-stubs = "^1.27.0"
-google-auth-oauthlib = "^1.2.1"
+python = ">=3.8,<3.9"
+google-api-python-client = "^2.145.0"
 
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
