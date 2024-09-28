@@ -11,8 +11,9 @@ google-api-python-client = "^2.145.0"
 pandas = "1.5.3"
 ipykernel = "^6.29.5"
 isodate = "^0.6.1"
-sqlalchemy = "^2.0.35"
+sqlalchemy = "1.4.46"
 psycopg2 = "^2.9.9"
+sqlalchemy-redshift = "^0.8.14"
 
 
 [build-system]
