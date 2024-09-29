@@ -12,6 +12,7 @@ services:
   webserver:
     image: apache/airflow:2.6.3
     environment:
+      - PYTHONPATH=/opt/airflow/dags:/opt/airflow/dags/module_etl
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
     env_file:
@@ -34,6 +35,7 @@ services:
       - .env  
     volumes:
       - ./dags:/opt/airflow/dags
+      - ./module_etl:/opt/airflow/dags/module_etl
       - ./airflow.cfg:/opt/airflow/airflow.cfg 
     depends_on:
       - postgres
