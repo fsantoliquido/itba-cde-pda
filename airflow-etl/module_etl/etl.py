@@ -1,4 +1,4 @@
-from module_etl.utils import connect_to_redshift, upload_to_redshift, initialize_youtube_api, get_videos_from_channel, get_video_statistics, get_channel_info, group_videos_by_date, CHANNEL_IDS
+from module_etl.utils import connect_to_redshift, upload_to_redshift, run_sql_queries, initialize_youtube_api, get_videos_from_channel, get_video_statistics, get_channel_info, group_videos_by_date, CHANNEL_IDS
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 import pandas as pd
@@ -95,5 +95,9 @@ def etl_run():
     #Iniciamos el engine
     engine_rs = connect_to_redshift()
 
-    upload_to_redshift(engine_rs, df_videos, 'pda."2024_franco_santoliquido_schema".youtube_videos_stg')
-    upload_to_redshift(engine_rs, df_subscribers, 'pda."2024_franco_santoliquido_schema".youtube_subscribers_stg')
+    #Inserto la raw data
+    upload_to_redshift(engine_rs, df_videos, 'youtube_videos_stg', schema='2024_franco_santoliquido_schema' )
+    upload_to_redshift(engine_rs, df_subscribers, 'youtube_subscribers_stg', schema='2024_franco_santoliquido_schema' )
+    
+    #Corro lo que está en el file queries.sql que tiene el upsert a la tabla final
+    run_sql_queries(engine_rs)

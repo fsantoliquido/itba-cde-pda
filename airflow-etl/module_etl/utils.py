@@ -17,7 +17,7 @@ CHANNEL_IDS = [
 ]
 
 
-#Dos funciones para subir a redshift 
+#Tres funciones para subir a redshift: una conecta, la otra uploadea en raw y la otra hace el upsert
 def connect_to_redshift():
 
     DATABASE_TYPE = 'redshift+psycopg2'
@@ -30,9 +30,30 @@ def connect_to_redshift():
     engine = create_engine(f"{DATABASE_TYPE}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
     return engine
 
-def upload_to_redshift(engine, df, destintation_table):
-    df.to_sql(destintation_table, engine, index=False, if_exists='replace')
+def upload_to_redshift(engine, df, destintation_table, schema):
+    df.to_sql(destintation_table, engine, schema, index=False, if_exists='replace')
+
+
+def run_sql_queries(engine):
+    # Obtener la ruta absoluta del archivo queries.sql
+    base_dir = os.path.dirname(os.path.abspath(__file__))  # Obtiene la ruta absoluta de module_etl
+    queries_file_path = os.path.join(base_dir, 'queries.sql')  # Se une para llegar a /queries.sql
     
+    if not os.path.exists(queries_file_path):
+        raise FileNotFoundError(f"No se encontró el archivo queries.sql en la ruta: {queries_file_path}")
+    
+    with open(queries_file_path, 'r') as file:
+        sql_queries = file.read()
+    queries = sql_queries.split(';')
+    
+    # Ejecuto las queries del archivo queries que tiene el upsert para hacer
+    with engine.connect() as connection:
+        for query in queries:
+            query = query.strip()
+            if query:  # Si la consulta no está vacía
+                connection.execute(query)
+                print(f"Ejecutada la consulta:\n{query}\n")
+
 
 # Convierto duracion que da Youtube ISO 8601 a un objeto de tiempo
 def convert_duration_to_seconds(duration_iso):
@@ -124,7 +145,6 @@ def get_channel_info(youtube, channel_id, max_retries=3, sleep_time=1):
     # Tiro el error para que pinche si no puedo obtener la información del canal
     raise Exception(f"No se pudo obtener la información del canal {channel_id} después de {max_retries} intentos.")
 
-
 def get_video_statistics(youtube, video_ids, max_requests=10, sleep_time=2, max_retries=3):
     video_stats = []
     request_count = 0
@@ -140,7 +160,11 @@ def get_video_statistics(youtube, video_ids, max_requests=10, sleep_time=2, max_
 
             # Procesamos las estadísticas
             for stats in stats_response['items']:
-                duration_iso = stats['contentDetails']['duration']
+                duration_iso = stats['contentDetails'].get('duration', None)  # Ajuste aquí
+                if duration_iso is None:
+                    print(f"El video {stats['id']} no tiene duración, omitimos el dato.")
+                    continue 
+
                 duration_seconds = convert_duration_to_seconds(duration_iso)
                 
                 # Verificamos si el video es un YouTube Short (menos de 60 segundos)
@@ -167,6 +191,8 @@ def get_video_statistics(youtube, video_ids, max_requests=10, sleep_time=2, max_
 
         except HttpError as e:
             print(f"Error al obtener estadísticas de videos: {e}. Intento {attempt+1} de {max_retries}")
+        except KeyError as e:
+            print(f"Ocurrió un error de clave: {e}. Intento {attempt+1} de {max_retries}")
         except Exception as e:
             print(f"Ocurrió un error inesperado: {e}. Intento {attempt+1} de {max_retries}")
         
