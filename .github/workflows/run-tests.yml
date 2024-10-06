@@ -1,0 +1,35 @@
+name: Python ETL Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run-tests:
+    name: Run ETL Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      
+      - name: Install dependencies with Poetry
+        working-directory: ./airflow-etl
+        run: |
+          poetry install
+
+      - name: Run Tests
+        working-directory: ./airflow-etl
+        run: |
+          poetry run pytest
