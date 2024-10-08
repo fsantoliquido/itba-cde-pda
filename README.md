@@ -1,6 +1,50 @@
 # README - ETL de YouTube itba-cde-pda
 
 
+## Descripción
+
+Este proyecto tiene como objetivo crear un ETL que consume datos de las APIs de YouTube (suscriptores + videos) para obtener para los principales canales de Streaming de Argentina, información sobre videos, visualizaciones, comentarios, likes, duración y suscriptores de canales. Todo el código está contenido en la carpeta `airflow-etl`, y está dividido de forma que puedas entender claramente qué hace cada parte del proceso.
+
+Las tablas finales son dos:
+  - `BT_YOUTUBE_VIDEO_STATS` : contiene todos los videos de un canal de youtube de Streaming Argentino y su cantidad de visualizaciones durante los primeros 7 días de creado. 
+  - `LG_CHANNEL_SUBSCRIBERS` : contiene un log de la cantidad de suscriptores a un día determinado para todos los canales principales de Streaming Argentino
+
+
+
+El script `etl.py` es el encargado de ejecutar toda la funciones que hacen la extracción de datos de YouTube y hacer las transformaciones necesarias para luego cargarlos a una base de datos Redshift. Las funciones que utiliza este archivo están organizadas en `utils.py`, para mantener el código limpio y prolijo.
+
+
+---
+
+## Estructura del repositorio
+
+Dentro de la carpeta `airflow-etl` encontrarás:
+
+- **dags/**: Tiene la DAG para orquestar las tareas en Airflow.
+- **module_etl/**:
+  - **etl.py**: El archivo principal del proceso ETL, donde se conectan las APIs de YouTube, se extraen los datos, se transforman, se crean variables nuevas y luego se cargan en Redshift con la función `upload_to_redshift`.
+  - **utils.py**: Este archivo tiene todas las funciones auxiliares que invoca `etl.py` para hacer consultas a las APIs, calcular métricas y gestionar la conexión a la base de datos.
+- **sql/queries.sql**: Contiene los `upserts` para mover los datos de las tablas de staging a las tablas finales en Redshift.
+- **tests/**: En esta carpeta está el file `test_youtube_api.py` que tiene tres test para probar que elfuncionamiento y estructura de respuesta de las funciones que extraen datos de las APIs. <
+
+---
+
+## Proceso ETL
+
+1. **Extracción**: 
+   - `etl.py` se conecta a dos APIs de YouTube: youtube.search() y  youtube.videos(): una para obtener información sobre los canales y la cantidad de suscriptores, y otra para traer los videos y sus visualizaciones.
+   - Extrae información como título del video, cantidad de visualizaciones, likes, comentarios, duración del video
+
+2. **Transformación**:
+   - Se calculan métricas adicionales como **likes per view** y **comments per view** para medir el **engagement** de los videos.
+   - Se consolidan los datos de videos y suscriptores.
+
+3. **Carga**:
+   - Los datos procesados se cargan en tablas de staging en Redshift, y luego, mediante las consultas SQL en `queries.sql`, se realiza el `upsert` de los datos a las tablas finales.
+   - Primero se carga la raw data a una tabla de Staging 'youtube_videos_stg' y 'youtube_subscribers_stg' respectivamente.
+   - Luego actualiza las tablas finales a través de un UPDATE e INSERT en SQL. El update lo hacemos solo en la tabla de videos para todos los videos creados en los ultimos 7 días. En el caso de los suscriptores, tenemos una foto de la cantidad de suscriptores por día.   
+---
+
 ## Instrucciones para reproducir el proceso
 
 ### 1. Clonar el repo
@@ -36,6 +80,11 @@ Con esto se puede ejecutar desde **Airflow**, pero también se puede ejecutar co
 ```bash
 poetry run python airflow-etl/module_etl/etl.py
 ```
+Si se va a ejecutar con Airflow hay que levantar el contenedor:
+```bash
+docker-compose up -d
+```
+
 
 ### 5. Tests
 
@@ -46,39 +95,3 @@ poetry run pytest
 ```
 
 
-## Descripción
-
-Este proyecto tiene como objetivo crear un ETL que consume datos de las APIs de YouTube (suscriptores + videos) para obtener información sobre videos, visualizaciones, comentarios, likes y suscriptores de canales. Todo el código está contenido en la carpeta `airflow-etl`, y está dividido de forma que puedas entender claramente qué hace cada parte del proceso.
-
-El script `etl.py` es el encargado de ejecutar toda la funciones que hacen la extracción de datos de YouTube y hacer las transformaciones necesarias para luego cargarlos a una base de datos Redshift. Las funciones que utiliza este archivo están organizadas en `utils.py`, para mantener el código limpio y prolijo.
-
-
----
-
-## Estructura del repositorio
-
-Dentro de la carpeta `airflow-etl` encontrarás:
-
-- **dags/**: Tiene la DAG para orquestar las tareas en Airflow.
-- **module_etl/**:
-  - **etl.py**: El archivo principal del proceso ETL, donde se conectan las APIs de YouTube, se extraen los datos, se transforman, se crean variables nuevas y luego se cargan en Redshift con la función `upload_to_redshift`.
-  - **utils.py**: Este archivo tiene todas las funciones auxiliares que invoca `etl.py` para hacer consultas a las APIs, calcular métricas y gestionar la conexión a la base de datos.
-- **sql/queries.sql**: Contiene los `upserts` para mover los datos de las tablas de staging a las tablas finales en Redshift.
-- **tests/**: En esta carpeta está el file `test_youtube_api.py` que tiene tres test para probar que elfuncionamiento y estructura de respuesta de las funciones que extraen datos de las APIs. <
-
----
-
-## Proceso ETL
-
-1. **Extracción**: 
-   - `etl.py` se conecta a dos APIs de YouTube: youtube.search() y  youtube.videos(): una para obtener información sobre los canales y la cantidad de suscriptores, y otra para traer los videos y sus visualizaciones.
-   - Extrae información como título del video, cantidad de visualizaciones, likes, comentarios, duración del video
-
-2. **Transformación**:
-   - Se calculan métricas adicionales como **likes per view** y **comments per view** para medir el **engagement** de los videos.
-   - Se consolidan los datos de videos y suscriptores.
-
-3. **Carga**:
-   - Los datos procesados se cargan en tablas de staging en Redshift, y luego, mediante las consultas SQL en `queries.sql`, se realiza el `upsert` de los datos a las tablas finales.
-
----
