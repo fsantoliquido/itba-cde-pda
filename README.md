@@ -1,9 +1,14 @@
-# README - ETL de YouTube itba-cde-pda
+# README - ETL YouTube Trabajo Práctico - itba-cde-pda
 
 
 ## Descripción
 
 Este proyecto tiene como objetivo crear un ETL que consume datos de las APIs de YouTube (suscriptores + videos) para obtener para los principales canales de Streaming de Argentina, información sobre videos, visualizaciones, comentarios, likes, duración y suscriptores de canales. Todo el código está contenido en la carpeta `airflow-etl`, y está dividido de forma que puedas entender claramente qué hace cada parte del proceso.
+En el ETL se calculan adicionalmente dos métricas para medir engagement en los distintos canales. Ambas métricas entre más cercana a uno sean más engagement generan en la audiencia:
+
+  1.	Likes por vistas (likes_per_view): Esta variable se obtiene dividiendo el número de likes por la cantidad total de visualizaciones. Es una métrica importante porque nos da una idea de cuántas personas que vieron el video se tomaron el tiempo de darle “like”, lo que refleja cuán bien ha sido recibido el contenido por la audiencia.
+	2.	Comentarios por vistas (comments_per_view): Esta métrica se obtiene dividiendo el número de comentarios por la cantidad total de visualizaciones. Los comentarios son aún interacciones más profundas porque el usuario se toma tiempo para redactar o reflexionar algo sobre el video por más que sea positivo o negativo.
+
 El siguiente diagrama describe el funcionamiento
 
 <img width="983" alt="image" src="https://github.com/user-attachments/assets/ce155788-b8b1-40fb-b934-9bd4df0418d6">
@@ -13,6 +18,9 @@ Las tablas finales son dos:
   - `BT_YOUTUBE_VIDEO_STATS` : contiene todos los videos de un canal de youtube de Streaming Argentino y su cantidad de visualizaciones durante los primeros 7 días de creado. 
   - `LG_CHANNEL_SUBSCRIBERS` : contiene un log de la cantidad de suscriptores a un día determinado para todos los canales principales de Streaming Argentino
 
+![image](https://github.com/user-attachments/assets/11e19d99-2f86-4572-ac68-c893de7327ab)
+
+![image](https://github.com/user-attachments/assets/37799d9f-ea94-49b4-bc77-0e4b592a2855)
 
 
 El script `etl.py` es el encargado de ejecutar toda la funciones que hacen la extracción de datos de YouTube y hacer las transformaciones necesarias para luego cargarlos a una base de datos Redshift. Las funciones que utiliza este archivo están organizadas en `utils.py`, para mantener el código limpio y prolijo.
