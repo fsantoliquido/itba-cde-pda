@@ -88,12 +88,20 @@ REDSHIFT_DATABASE=database-compartida
 
 ### 4. Ejecutar el ETL
 
+
 Con esto se puede ejecutar desde **Airflow**, pero también se puede ejecutar con **Poetry**:
 
 ```bash
 poetry run python airflow-etl/module_etl/etl.py
 ```
-Si se va a ejecutar con Airflow hay que levantar el contenedor:
+Si se va a ejecutar con Airflow hay que levantar el contenedor. Para eso primero ir a la carpeta donde está el docker-compose.yml:
+
+```bash
+cd /ruta-donde-descargaste-repo/airflow-etl
+```
+
+Levantar el contenedor:
+
 ```bash
 docker-compose up -d
 ```
