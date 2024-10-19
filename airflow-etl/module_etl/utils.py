@@ -37,22 +37,27 @@ def upload_to_redshift(engine, df, destintation_table, schema):
 def run_sql_queries(engine):
     # Obtener la ruta absoluta del archivo queries.sql
     base_dir = os.path.dirname(os.path.abspath(__file__))  # Obtiene la ruta absoluta de module_etl
-    queries_file_path = os.path.join(base_dir, 'queries.sql')  # Se une para llegar a /queries.sql
+    queries_dir = os.path.join(base_dir, 'queries')  # Se une para llegar a la carpeta de queries
     
-    if not os.path.exists(queries_file_path):
-        raise FileNotFoundError(f"No se encontró el archivo queries.sql en la ruta: {queries_file_path}")
-    
-    with open(queries_file_path, 'r') as file:
-        sql_queries = file.read()
-    queries = sql_queries.split(';')
-    
-    # Ejecuto las queries del archivo queries que tiene el upsert para hacer
-    with engine.connect() as connection:
-        for query in queries:
-            query = query.strip()
-            if query:  # Si la consulta no está vacía
-                connection.execute(query)
-                print(f"Ejecutada la consulta:\n{query}\n")
+    sql_files = ['videos_upsert.sql', 'subscribers_upsert.sql']
+
+    for sql_file in sql_files:
+            queries_file_path = os.path.join(queries_dir, sql_file)
+
+            if not os.path.exists(queries_file_path):
+                raise FileNotFoundError(f"No se encontró el archivo {sql_file} en la ruta: {queries_file_path}")
+            
+            with open(queries_file_path, 'r') as file:
+                sql_queries = file.read()
+            queries = sql_queries.split(';')
+            
+            # Ejecuto las queries del archivo
+            with engine.connect() as connection:
+                for query in queries:
+                    query = query.strip()
+                    if query:  # Si la consulta no está vacía
+                        connection.execute(query)
+                        print(f"Ejecutada la consulta del archivo {sql_file}:\n{query}\n")
 
 
 # Convierto duracion que da Youtube ISO 8601 a un objeto de tiempo
