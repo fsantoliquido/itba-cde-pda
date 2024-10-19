@@ -191,13 +191,16 @@ def get_video_statistics(youtube, video_ids, max_requests=10, sleep_time=2, max_
 
         except HttpError as e:
             print(f"Error al obtener estadísticas de videos: {e}. Intento {attempt+1} de {max_retries}")
+            # Esperamos para intentar nuevamente
+            time.sleep(sleep_time)
+        
+        #Tiro error en los errores no salvables
         except KeyError as e:
             print(f"Ocurrió un error de clave: {e}. Intento {attempt+1} de {max_retries}")
         except Exception as e:
             print(f"Ocurrió un error inesperado: {e}. Intento {attempt+1} de {max_retries}")
         
-        # Esperamos para intentar nuevamente
-        time.sleep(sleep_time)
+        
 
     # Tiro el error para que pinche si no puedo obtener las estadísticas del canal
     raise Exception(f"No se pudieron obtener las estadísticas de videos después de {max_retries} intentos.")
