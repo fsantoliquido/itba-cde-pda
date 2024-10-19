@@ -5,7 +5,10 @@ import os
 import time
 from googleapiclient.errors import HttpError
 import isodate
+import logging
 
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Lista de canales a monitorear
 CHANNEL_IDS = [
@@ -19,7 +22,8 @@ CHANNEL_IDS = [
 
 #Tres funciones para subir a redshift: una conecta, la otra uploadea en raw y la otra hace el upsert
 def connect_to_redshift():
-
+    logging.info("Conectando a Redshift...")
+    
     DATABASE_TYPE = 'redshift+psycopg2'
     DBAPI = 'psycopg2'
     ENDPOINT = os.getenv('REDSHIFT_ENDPOINT')
@@ -28,13 +32,18 @@ def connect_to_redshift():
     PORT = 5439
     DATABASE = os.getenv('REDSHIFT_DATABASE')
     engine = create_engine(f"{DATABASE_TYPE}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
+    
+    logging.info("Conexión a Redshift exitosa")
     return engine
 
 def upload_to_redshift(engine, df, destintation_table, schema):
+    logging.info(f"Subiendo datos a {schema}.{destintation_table} a Redshift...")
     df.to_sql(destintation_table, engine, schema, index=False, if_exists='replace')
+    logging.info(f"Datos subidos exitosamente a {schema}.{destintation_table}")
 
 
 def run_sql_queries(engine):
+    logging.info("Ejecutando queries en Redshift...")
     # Obtener la ruta absoluta del archivo queries.sql
     base_dir = os.path.dirname(os.path.abspath(__file__))  # Obtiene la ruta absoluta de module_etl
     queries_dir = os.path.join(base_dir, 'queries')  # Se une para llegar a la carpeta de queries
@@ -57,7 +66,7 @@ def run_sql_queries(engine):
                     query = query.strip()
                     if query:  # Si la consulta no está vacía
                         connection.execute(query)
-                        print(f"Ejecutada la consulta del archivo {sql_file}:\n{query}\n")
+                        logging.info(f"Ejecutada la consulta del archivo {sql_file}:\n{query}\n")
 
 
 # Convierto duracion que da Youtube ISO 8601 a un objeto de tiempo
@@ -76,6 +85,7 @@ def initialize_youtube_api():
 # Funcion para buscar videos de un canal, con retrys
 
 def get_videos_from_channel(youtube, channel_id, published_after, max_requests=10, sleep_time=1, max_retries=3):
+    logging.info(f"Obteniendo videos del canal {channel_id}")
     videos = []
     request_count = 0
     
@@ -104,23 +114,23 @@ def get_videos_from_channel(youtube, channel_id, published_after, max_requests=1
             
             # Si se alcanza el límite de requests, metemos un sleep comentado
             if request_count % max_requests == 0:
-                print(f"Realizadas {request_count} solicitudes. Esperando {sleep_time} segundos para continuar...")
+                logging.info(f"Realizadas {request_count} solicitudes. Esperando {sleep_time} segundos para continuar...")
                 time.sleep(sleep_time)
             
             return videos
 
         except HttpError as e:
-            print(f"Error al obtener videos del canal {channel_id}: {e}. Intento {attempt+1} de {max_retries}")
+            logging.error(f"Error al obtener videos del canal {channel_id}: {e}. Intento {attempt+1} de {max_retries}")
+            time.sleep(sleep_time)
         except Exception as e:
-            print(f"Ocurrió un error inesperado: {e}. Intento {attempt+1} de {max_retries}")
-        
-        # Meto otro sleep para retry
-        time.sleep(sleep_time)
+            logging.error(f"Error inesperado al obtener videos del canal {channel_id}: {e}")
+            raise
         
     raise Exception(f"No se pudo obtener los videos del canal {channel_id} después de {max_retries} intentos.")
 
 #Busca la información del canal de Youtube que le pases
 def get_channel_info(youtube, channel_id, max_retries=3, sleep_time=1):
+    logging.info(f"Obteniendo info del canal {channel_id}")
     for attempt in range(max_retries):
         try:
             request = youtube.channels().list(
@@ -140,9 +150,9 @@ def get_channel_info(youtube, channel_id, max_retries=3, sleep_time=1):
             return channel_data
 
         except HttpError as e:
-            print(f"Error al obtener información del canal {channel_id}: {e}. Intento {attempt+1} de {max_retries}")
+            logging.error(f"Error al obtener información del canal {channel_id}: {e}. Intento {attempt+1} de {max_retries}")
         except Exception as e:
-            print(f"Ocurrió un error inesperado: {e}. Intento {attempt+1} de {max_retries}")
+            logging.error(f"Ocurrió un error inesperado: {e}. Intento {attempt+1} de {max_retries}")
         
         # Esperamos antes de intentar nuevamente
         time.sleep(sleep_time)
@@ -151,6 +161,7 @@ def get_channel_info(youtube, channel_id, max_retries=3, sleep_time=1):
     raise Exception(f"No se pudo obtener la información del canal {channel_id} después de {max_retries} intentos.")
 
 def get_video_statistics(youtube, video_ids, max_requests=10, sleep_time=2, max_retries=3):
+    logging.info(f"Obteniendo stats del video")
     video_stats = []
     request_count = 0
     
@@ -189,21 +200,21 @@ def get_video_statistics(youtube, video_ids, max_requests=10, sleep_time=2, max_
 
             # Si se llega el límite de solicitudes, hacemos un sleep
             if request_count % max_requests == 0:
-                print(f"Realizadas {request_count} solicitudes. Esperando {sleep_time} segundos para continuar...")
+                logging.info(f"Realizadas {request_count} solicitudes. Esperando {sleep_time} segundos para continuar...")
                 time.sleep(sleep_time)
 
             return video_stats
 
         except HttpError as e:
-            print(f"Error al obtener estadísticas de videos: {e}. Intento {attempt+1} de {max_retries}")
+            logging.error(f"Error al obtener estadísticas de videos: {e}. Intento {attempt+1} de {max_retries}")
             # Esperamos para intentar nuevamente
             time.sleep(sleep_time)
         
         #Tiro error en los errores no salvables
         except KeyError as e:
-            print(f"Ocurrió un error de clave: {e}. Intento {attempt+1} de {max_retries}")
+            logging.error(f"Ocurrió un error de clave: {e}. Intento {attempt+1} de {max_retries}")
         except Exception as e:
-            print(f"Ocurrió un error inesperado: {e}. Intento {attempt+1} de {max_retries}")
+            logging.error(f"Ocurrió un error inesperado: {e}. Intento {attempt+1} de {max_retries}")
         
         
 
