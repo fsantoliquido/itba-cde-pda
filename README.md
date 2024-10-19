@@ -75,14 +75,15 @@ poetry install
 ### 3. Configurar credenciales
 
 - Las credenciales para las APIs de YouTube y para Redshift serán compartidas por Slack por separado.
-- Se tienen que configurar las variables de entorno necesarias para las conexiones a las APIs y Redshift. Un ejemplo de estas variables puede ser:
+- Se tienen que configurar las variables de entorno necesarias para las conexiones a las APIs y Redshift.
+Un ejemplo de archivo .env es:
 
 ```bash
-export YOUTUBE_API_KEY=api-compartida
-export REDSHIFT_ENDPOINT=endpoint-compartido
-export REDSHIFT_USER=usuario-compartido
-export REDSHIFT_PASSWORD=password-compartido
-export REDSHIFT_DATABASE=database-compartida
+YOUTUBE_API_KEY=api-compartida
+REDSHIFT_ENDPOINT=endpoint-compartido
+REDSHIFT_USER=usuario-compartido
+REDSHIFT_PASSWORD=password-compartido
+REDSHIFT_DATABASE=database-compartida
 ```
 
 ### 4. Ejecutar el ETL
