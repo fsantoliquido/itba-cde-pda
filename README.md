@@ -57,6 +57,23 @@ Dentro de la carpeta `airflow-etl` encontrarás:
    - Luego actualiza las tablas finales a través de un UPDATE e INSERT en SQL. El update lo hacemos solo en la tabla de videos para todos los videos creados en los ultimos 7 días. En el caso de los suscriptores, tenemos una foto de la cantidad de suscriptores por día.   
 ---
 
+## Testeos
+
+En este proyecto se utiliza pytest para asegurar que las funciones corran correctamente. Los tests simulan las llamadas a las APIs de YouTube y verifican que las funciones devuelvan los datos esperados. Además, los tests se ejecutan automáticamente en cada pull request utilizando GitHub Actions, lo que garantiza que cualquier cambio en el código pase por una validación antes de ser integrado.
+
+Los tests cubren las siguientes funciones:
+
+	•	get_videos_from_channel: Verifica que se obtienen correctamente los videos de un canal, simulando la respuesta de la API de YouTube.
+	•	get_channel_info: Verifica que se obtiene correctamente la información de un canal, como su nombre y cantidad de suscriptores.
+	•	get_video_statistics: Verifica que las estadísticas de los videos (vistas, likes, comentarios, duración) se obtienen correctamente, y también convierte la duración del video al formato correcto (segundos).
+
+Para ejecutar los tests localmente, hay que correr:
+
+```bash
+poetry run pytest
+```
+
+---
 ## Instrucciones para reproducir el proceso
 
 ### 1. Clonar el repo
