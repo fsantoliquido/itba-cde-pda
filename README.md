@@ -3,7 +3,9 @@
 
 ## Descripción
 
-Este proyecto tiene como objetivo crear un ETL que consume datos de las APIs de YouTube (suscriptores + videos) para obtener para los principales canales de Streaming de Argentina, información sobre videos, visualizaciones, comentarios, likes, duración y suscriptores de canales. Todo el código está contenido en la carpeta `airflow-etl`, y está dividido de forma que puedas entender claramente qué hace cada parte del proceso.
+Este proyecto tiene como objetivo crear un ETL que consume datos de las APIs de YouTube (suscriptores + videos) para obtener para los principales canales de Streaming de Argentina, información sobre videos, visualizaciones, comentarios, likes, duración y suscriptores de canales. Con esto, podemos crear un ranking de perfomrance diario de los canales que ayuda tomar decisiones del estilo: ¿en qué canal de Streaming me conviene mostrar mi producto? ¿En cuál hay más interacciones y qué tan profundas son? ¿Los viewers interactuan y están comprometidos con el contenido?. 
+
+Todo el código está contenido en la carpeta `airflow-etl`, y está dividido de forma que puedas entender claramente qué hace cada parte del proceso.
 En el ETL se calculan adicionalmente dos métricas para medir engagement en los distintos canales. Ambas métricas entre más cercana a uno sean más engagement generan en la audiencia:
 
   1.	Likes por vistas (likes_per_view): Esta variable se obtiene dividiendo el número de likes por la cantidad total de visualizaciones. Es una métrica importante porque nos da una idea de cuántas personas que vieron el video se tomaron el tiempo de darle “like”, lo que refleja cuán bien ha sido recibido el contenido por la audiencia.
@@ -14,9 +16,10 @@ El siguiente diagrama describe el funcionamiento
 <img width="983" alt="image" src="https://github.com/user-attachments/assets/ce155788-b8b1-40fb-b934-9bd4df0418d6">
 
 
-Las tablas finales son dos:
+Las tablas finales son tres:
   - `BT_YOUTUBE_VIDEO_STATS` : contiene todos los videos de un canal de youtube de Streaming Argentino y su cantidad de visualizaciones durante los primeros 7 días de creado. 
   - `LG_CHANNEL_SUBSCRIBERS` : contiene un log de la cantidad de suscriptores a un día determinado para todos los canales principales de Streaming Argentino
+  - `DAILY_CHANNEL_RANKING` : contiene un ranking para cada día según las interacciones y suscriptores para los canales principales de Streaming Argentino
 
 ![image](https://github.com/user-attachments/assets/11e19d99-2f86-4572-ac68-c893de7327ab)
 
@@ -36,7 +39,7 @@ Dentro de la carpeta `airflow-etl` encontrarás:
 - **module_etl/**:
   - **etl.py**: El archivo principal del proceso ETL, donde se conectan las APIs de YouTube, se extraen los datos, se transforman, se crean variables nuevas y luego se cargan en Redshift con la función `upload_to_redshift`.
   - **utils.py**: Este archivo tiene todas las funciones auxiliares que invoca `etl.py` para hacer consultas a las APIs, calcular métricas y gestionar la conexión a la base de datos.
-- **sql/queries.sql**: Contiene los `upserts` para mover los datos de las tablas de staging a las tablas finales en Redshift.
+- **queries/<upsert>.sql**: Contiene los `upserts` para mover los datos de las tablas de staging a las tablas finales en Redshift.
 - **tests/**: En esta carpeta está el file `test_youtube_api.py` que tiene tres test para probar que elfuncionamiento y estructura de respuesta de las funciones que extraen datos de las APIs. <
 
 ---
