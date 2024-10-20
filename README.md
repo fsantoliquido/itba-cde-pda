@@ -1,4 +1,4 @@
-# README - ETL YouTube Trabajo Práctico - itba-cde-pda
+![image](https://github.com/user-attachments/assets/adb89254-3cda-40a3-ab57-ad2a22a1308e)# README - ETL YouTube Trabajo Práctico - itba-cde-pda
 
 
 ## Descripción
@@ -13,7 +13,7 @@ En el ETL se calculan adicionalmente dos métricas para medir engagement en los 
 
 El siguiente diagrama describe el funcionamiento
 
-<img width="983" alt="image" src="https://github.com/user-attachments/assets/ce155788-b8b1-40fb-b934-9bd4df0418d6">
+![image](https://github.com/user-attachments/assets/b18ae8b6-439b-45de-a64c-6af99e27f209)
 
 
 Las tablas finales son tres:
@@ -24,6 +24,9 @@ Las tablas finales son tres:
 ![image](https://github.com/user-attachments/assets/11e19d99-2f86-4572-ac68-c893de7327ab)
 
 ![image](https://github.com/user-attachments/assets/37799d9f-ea94-49b4-bc77-0e4b592a2855)
+
+![image](https://github.com/user-attachments/assets/cdf7e39c-bd78-465e-abcd-30a6f6e3805f)
+
 
 
 El script `etl.py` es el encargado de ejecutar toda la funciones que hacen la extracción de datos de YouTube y hacer las transformaciones necesarias para luego cargarlos a una base de datos Redshift. Las funciones que utiliza este archivo están organizadas en `utils.py`, para mantener el código limpio y prolijo.
