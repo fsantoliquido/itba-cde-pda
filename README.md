@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/adb89254-3cda-40a3-ab57-ad2a22a1308e)# README - ETL YouTube Trabajo Práctico - itba-cde-pda
+# README - ETL YouTube Trabajo Práctico - itba-cde-pda
 
 
 ## Descripción
