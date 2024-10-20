@@ -48,7 +48,7 @@ def run_sql_queries(engine):
     base_dir = os.path.dirname(os.path.abspath(__file__))  # Obtiene la ruta absoluta de module_etl
     queries_dir = os.path.join(base_dir, 'queries')  # Se une para llegar a la carpeta de queries
     
-    sql_files = ['videos_upsert.sql', 'subscribers_upsert.sql']
+    sql_files = ['videos_upsert.sql', 'subscribers_upsert.sql', 'ranking_channels.sql']
 
     for sql_file in sql_files:
             queries_file_path = os.path.join(queries_dir, sql_file)
