@@ -67,6 +67,7 @@ def run_sql_queries(engine):
                     if query:  # Si la consulta no está vacía
                         connection.execute(query)
                         logging.info(f"Ejecutada la consulta del archivo {sql_file}:\n{query}\n")
+                    time.sleep(5)
 
 
 # Convierto duracion que da Youtube ISO 8601 a un objeto de tiempo
