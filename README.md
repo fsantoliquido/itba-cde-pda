@@ -63,9 +63,10 @@ Dentro de la carpeta `airflow-etl` encontrarás:
    - Se consolidan los datos de videos y suscriptores.
 
 3. **Carga**:
-   - Los datos procesados se cargan en tablas de staging en Redshift, y luego, mediante las consultas SQL en `queries.sql`, se realiza el `upsert` de los datos a las tablas finales.
+   - Los datos procesados se cargan en tablas de staging en Redshift, y luego, mediante las consultas SQL en la carpeta `/queries/....sql`, se realiza el `upsert` de los datos a las tablas finales.
    - Primero se carga la raw data a una tabla de Staging 'youtube_videos_stg' y 'youtube_subscribers_stg' respectivamente.
-   - Luego actualiza las tablas finales a través de un UPDATE e INSERT en SQL. El update lo hacemos solo en la tabla de videos para todos los videos creados en los ultimos 7 días. En el caso de los suscriptores, tenemos una foto de la cantidad de suscriptores por día.   
+   - Luego actualiza las tablas finales a través de un UPDATE e INSERT en SQL. El update lo hacemos solo en la tabla de videos para todos los videos creados en los ultimos 7 días. En el caso de los suscriptores, tenemos una foto de la cantidad de suscriptores por día.
+   - En ultimo lugar, se crea el ranking `/queries/ranking_channels.sql` y se inserta en la tabla final DAILY_CHANNEL_RANKING
 ---
 
 
