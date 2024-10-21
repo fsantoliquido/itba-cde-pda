@@ -2,6 +2,8 @@ from module_etl.utils import connect_to_redshift, upload_to_redshift, run_sql_qu
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 import pandas as pd
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 """
     Tiene tres etapas:
@@ -14,6 +16,7 @@ import pandas as pd
     
 """
 def etl_run():
+    logging.info("Iniciando el proceso ETL...")
     # Inicializamos la API
     youtube = initialize_youtube_api()
 
@@ -28,6 +31,7 @@ def etl_run():
 
     # Se itera para cada channel de YouTube y sacamos estadísticas: cantindad de subs a la fecha de consulta, sus videos y para cada video métricas de views, comentarios y likes
     for channel_id in CHANNEL_IDS:
+        logging.info(f"Obteniendo información del canal: {channel_id}")
         # Obtenemos la información del canal (nombre, id, suscriptores)
         channel_info = get_channel_info(youtube, channel_id)
         
@@ -54,7 +58,7 @@ def etl_run():
                 video_ids.append(video['id']['videoId'])
             else:
                 # Si no se encuentra el video_id, imprimimos el video para depuración
-                print(f"Video sin 'video_id' o 'id' válido detectado: {video}")
+                logging.warning(f"Video sin 'video_id' válido detectado: {video}")
         
         # Las stats de los videos
         video_stats = get_video_statistics(youtube, video_ids)
@@ -101,3 +105,5 @@ def etl_run():
     
     #Corro lo que está en el file queries.sql que tiene el upsert a la tabla final
     run_sql_queries(engine_rs)
+    
+    logging.info("Proceso ETL finalizado")

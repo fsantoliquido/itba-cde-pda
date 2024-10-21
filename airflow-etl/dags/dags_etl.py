@@ -18,7 +18,7 @@ dag = DAG(
     'youtube_etl_dag',
     default_args=default_args,
     description='DAG PARA EL ETL A RS',
-    schedule_interval=timedelta(days=1), 
+    schedule_interval='@daily', 
 )
 
 run_etl_task = PythonOperator(

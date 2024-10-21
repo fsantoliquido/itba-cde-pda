@@ -3,7 +3,11 @@
 
 ## Descripción
 
-Este proyecto tiene como objetivo crear un ETL que consume datos de las APIs de YouTube (suscriptores + videos) para obtener para los principales canales de Streaming de Argentina, información sobre videos, visualizaciones, comentarios, likes, duración y suscriptores de canales. Todo el código está contenido en la carpeta `airflow-etl`, y está dividido de forma que puedas entender claramente qué hace cada parte del proceso.
+
+Este proyecto tiene como objetivo crear un ETL que consume datos de las APIs de YouTube (suscriptores + videos) para obtener para los principales canales de Streaming de Argentina, información sobre videos, visualizaciones, comentarios, likes, duración y suscriptores de canales. Con esto, podemos crear un ranking de perfomrance diario de los canales que ayuda tomar decisiones del estilo: ¿en qué canal de Streaming me conviene mostrar mi producto? ¿En cuál hay más interacciones y qué tan profundas son? ¿Los viewers interactuan y están comprometidos con el contenido?. 
+
+Todo el código está contenido en la carpeta `airflow-etl`, y está dividido de forma que puedas entender claramente qué hace cada parte del proceso.
+
 En el ETL se calculan adicionalmente dos métricas para medir engagement en los distintos canales. Ambas métricas entre más cercana a uno sean más engagement generan en la audiencia:
 
   1.	Likes por vistas (likes_per_view): Esta variable se obtiene dividiendo el número de likes por la cantidad total de visualizaciones. Es una métrica importante porque nos da una idea de cuántas personas que vieron el video se tomaron el tiempo de darle “like”, lo que refleja cuán bien ha sido recibido el contenido por la audiencia.
@@ -11,16 +15,21 @@ En el ETL se calculan adicionalmente dos métricas para medir engagement en los 
 
 El siguiente diagrama describe el funcionamiento
 
-<img width="983" alt="image" src="https://github.com/user-attachments/assets/ce155788-b8b1-40fb-b934-9bd4df0418d6">
+![image](https://github.com/user-attachments/assets/b18ae8b6-439b-45de-a64c-6af99e27f209)
 
 
-Las tablas finales son dos:
+Las tablas finales son tres:
   - `BT_YOUTUBE_VIDEO_STATS` : contiene todos los videos de un canal de youtube de Streaming Argentino y su cantidad de visualizaciones durante los primeros 7 días de creado. 
   - `LG_CHANNEL_SUBSCRIBERS` : contiene un log de la cantidad de suscriptores a un día determinado para todos los canales principales de Streaming Argentino
+  - `DAILY_CHANNEL_RANKING` : contiene un ranking para cada día según las interacciones y suscriptores para los canales principales de Streaming Argentino
+
 
 ![image](https://github.com/user-attachments/assets/11e19d99-2f86-4572-ac68-c893de7327ab)
 
 ![image](https://github.com/user-attachments/assets/37799d9f-ea94-49b4-bc77-0e4b592a2855)
+
+
+![image](https://github.com/user-attachments/assets/cdf7e39c-bd78-465e-abcd-30a6f6e3805f)
 
 
 El script `etl.py` es el encargado de ejecutar toda la funciones que hacen la extracción de datos de YouTube y hacer las transformaciones necesarias para luego cargarlos a una base de datos Redshift. Las funciones que utiliza este archivo están organizadas en `utils.py`, para mantener el código limpio y prolijo.
@@ -36,7 +45,9 @@ Dentro de la carpeta `airflow-etl` encontrarás:
 - **module_etl/**:
   - **etl.py**: El archivo principal del proceso ETL, donde se conectan las APIs de YouTube, se extraen los datos, se transforman, se crean variables nuevas y luego se cargan en Redshift con la función `upload_to_redshift`.
   - **utils.py**: Este archivo tiene todas las funciones auxiliares que invoca `etl.py` para hacer consultas a las APIs, calcular métricas y gestionar la conexión a la base de datos.
-- **sql/queries.sql**: Contiene los `upserts` para mover los datos de las tablas de staging a las tablas finales en Redshift.
+
+- **queries/<upsert>.sql**: Contiene los `upserts` para mover los datos de las tablas de staging a las tablas finales en Redshift.
+
 - **tests/**: En esta carpeta está el file `test_youtube_api.py` que tiene tres test para probar que elfuncionamiento y estructura de respuesta de las funciones que extraen datos de las APIs. <
 
 ---
@@ -55,6 +66,25 @@ Dentro de la carpeta `airflow-etl` encontrarás:
    - Los datos procesados se cargan en tablas de staging en Redshift, y luego, mediante las consultas SQL en `queries.sql`, se realiza el `upsert` de los datos a las tablas finales.
    - Primero se carga la raw data a una tabla de Staging 'youtube_videos_stg' y 'youtube_subscribers_stg' respectivamente.
    - Luego actualiza las tablas finales a través de un UPDATE e INSERT en SQL. El update lo hacemos solo en la tabla de videos para todos los videos creados en los ultimos 7 días. En el caso de los suscriptores, tenemos una foto de la cantidad de suscriptores por día.   
+---
+
+
+## Testeos
+
+En este proyecto se utiliza pytest para asegurar que las funciones corran correctamente. Los tests simulan las llamadas a las APIs de YouTube y verifican que las funciones devuelvan los datos esperados. Además, los tests se ejecutan automáticamente en cada pull request utilizando GitHub Actions, lo que garantiza que cualquier cambio en el código pase por una validación antes de ser integrado.
+
+Los tests cubren las siguientes funciones:
+
+	•	get_videos_from_channel: Verifica que se obtienen correctamente los videos de un canal, simulando la respuesta de la API de YouTube.
+	•	get_channel_info: Verifica que se obtiene correctamente la información de un canal, como su nombre y cantidad de suscriptores.
+	•	get_video_statistics: Verifica que las estadísticas de los videos (vistas, likes, comentarios, duración) se obtienen correctamente, y también convierte la duración del video al formato correcto (segundos).
+
+Para ejecutar los tests localmente, hay que correr:
+
+```bash
+poetry run pytest
+```
+
 ---
 
 ## Instrucciones para reproducir el proceso
@@ -77,6 +107,7 @@ poetry install
 - Las credenciales para las APIs de YouTube y para Redshift serán compartidas por Slack por separado.
 - Se tienen que configurar las variables de entorno necesarias para las conexiones a las APIs y Redshift.
 Un ejemplo de archivo .env es:
+
 
 ```bash
 YOUTUBE_API_KEY=api-compartida
@@ -114,5 +145,3 @@ Se pueden ejecutar los tests que :
 ```bash
 poetry run pytest
 ```
-
-
