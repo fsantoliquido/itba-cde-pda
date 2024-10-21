@@ -24,6 +24,9 @@ jobs:
         working-directory: ./airflow-etl
         run: |
           poetry install
+      
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=." >> $GITHUB_ENV
 
       - name: Run Tests
         working-directory: ./airflow-etl
