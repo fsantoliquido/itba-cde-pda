@@ -24,7 +24,7 @@ services:
       - ./airflow.cfg:/opt/airflow/airflow.cfg  # Acá monto volumes desde el archivo airflow.cfg porque si no me pincha cada vez que levanto el contenedor
     depends_on:
       - postgres
-    command: webserver
+    command: bash -c "airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com && airflow webserver"
 
   scheduler:
     image: apache/airflow:2.6.3
