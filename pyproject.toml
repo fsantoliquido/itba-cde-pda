@@ -4,6 +4,8 @@ version = "0.1.0"
 description = ""
 authors = ["fsantoliquido"]
 readme = "README.md"
+packages = [{include = "airflow-etl/module_etl"}, {include = "airflow-etl/dags"}, {include = "airflow-etl/tests"}]  
+
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.9"
@@ -20,3 +22,6 @@ pytest = "^8.3.3"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+test = "env PYTHONPATH=.:pytest"
