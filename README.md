@@ -116,6 +116,7 @@ REDSHIFT_ENDPOINT=endpoint-compartido
 REDSHIFT_USER=usuario-compartido
 REDSHIFT_PASSWORD=password-compartido
 REDSHIFT_DATABASE=database-compartida
+PYTHONPATH=.
 ```
 
 ### 4. Ejecutar el ETL
@@ -137,11 +138,16 @@ Levantar el contenedor:
 ```bash
 docker-compose up -d
 ```
+Ingresar a airflow con las credenciales genéricas:
 
+```bash
+user: admin
+pass: admin
+```
 
 ### 5. Tests
 
-Se pueden ejecutar los tests que :
+Se pueden ejecutar los tests en la carpeta airflow-etl :
 
 ```bash
 poetry run pytest
